@@ -7,21 +7,21 @@ const studyMaterialSchema = new mongoose.Schema({
     required: true,
   },
   type: {
-    type: String, // e.g., "pdf", "document", "link"
+    type: String,
     required: true,
   },
   url: {
-    type: String, // URL of the file or link
+    type: String,
     required: true,
   },
   fileName: {
-    type: String, // File name for downloadable materials (optional)
+    type: String,
   },
   description: {
-    type: String, // Optional description for the study material
+    type: String,
   },
   size: {
-    type: Number, // Size of the file in bytes (optional)
+    type: Number,
   },
   createdAt: {
     type: Date,

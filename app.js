@@ -7,6 +7,7 @@ import authRouter from "./route/authRoute.js";
 import mockTestRouter from "./route/mockTestRoute.js";
 import courseRouter from "./route/courseRoute.js";
 import noteRouter from "./route/noteRoute.js";
+import qnaRouter from "./route/qnaRoute.js";
 
 import notFoundMiddleware from "./middleware/not-found.js";
 import errorHandlerMiddleware from "./middleware/error-handler.js";
