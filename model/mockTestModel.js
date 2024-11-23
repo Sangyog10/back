@@ -14,66 +14,35 @@ const questionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-});
-
-// Schema for subject-specific results
-const subjectResultSchema = new mongoose.Schema({
   subject: {
     type: String,
     required: true,
   },
-  score: {
-    type: Number,
-    required: true,
-  },
-  correctCount: {
-    type: Number,
-    required: true,
-  },
-  wrongCount: {
-    type: Number,
-    required: true,
-  },
-  selectedAnswers: {
-    type: [String],
-    required: true,
-  },
 });
 
-// Schema for individual submissions
+// Schema for subject-specific results
+const subjectResultSchema = new mongoose.Schema({
+  subject: { type: String, required: true },
+  score: { type: Number, required: true },
+  correctCount: { type: Number, required: true },
+  wrongCount: { type: Number, required: true },
+  selectedAnswers: { type: [String], required: true },
+}, { _id: false });
+
 const submissionSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    subjectResults: {
-      type: [subjectResultSchema],
-      required: true,
-    },
-    selectedAnswers: {
-      type: Map,
-      of: Number, // Stores question index and selected option index
-      required: true,
-    },
-    totalScore: {
-      type: Number,
-      required: true,
-    },
-    totalQuestions: {
-      type: Number,
-      required: true,
-    },
-    submittedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  },
-  { timestamps: true }
-);
+    questions: { type: Array, required: true }, // Array of questions
+    subjectResults: { type: [subjectResultSchema], required: true }, // Array of subject results
+    selectedAnswers: { type: Map, of: Number, required: true }, // Object with selected indexes
+    totalScore: { type: Number, required: true }, // Total score
+    totalQuestions: { type: Number, required: true }, // Total questions answered
+    submittedAt: { type: String, required: true }, // Submission timestamp
+  }, {
+    timestamps: true, // Automatically add createdAt and updatedAt
+  }
+)
 
-// Main schema for the mock test
+// Schema for mock test
 const mockTestSchema = new mongoose.Schema(
   {
     subject: {
