@@ -13,7 +13,7 @@ router.post("/create", createMockTest);
 router.post("/:id/submit", submitMockTest);
 router.get("/random", getRandomQuestions);
 router.get("/questions", getQuestionsBySubject);
-router.get("/:id", getSingleMockTest);
 router.get("/", getAllMockTests);
+router.get("/:id", getSingleMockTest);
 
 export default router;
