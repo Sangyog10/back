@@ -9,9 +9,9 @@ import {
   getNotes,
 } from "../controllers/noteController.js";
 
-router.get("/", authenticateUser, getNotes);
-router.post("/", authenticateUser, createNote);
-router.delete("/", authenticateUser, deleteNote);
-router.patch("/", authenticateUser, updateNote);
+router.get("/", getNotes);
+router.post("/", createNote);
+router.delete("/", deleteNote);
+router.patch("/", updateNote);
 
 export default router;

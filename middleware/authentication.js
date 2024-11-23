@@ -12,7 +12,6 @@ const authenticateUser = async (req, res, next) => {
   try {
     const payload = isTokenValid({ token });
     const { name, userId } = payload;
-    // req.user.isLoggedin=true;
     req.user = { name, userId };
 
     next();
