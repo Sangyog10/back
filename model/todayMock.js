@@ -13,7 +13,7 @@ const subjectResultSchema = new Schema({
   score: { type: Number, required: true },
   correctCount: { type: Number, required: true },
   wrongCount: { type: Number, required: true },
-  selectedAnswers: { type: [Number], required: true },
+  selectedAnswers: { type: [String], required: true },
 });
 
 const testResultSchema = new Schema({

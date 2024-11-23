@@ -2,7 +2,7 @@ import TestResult  from "../model/todayMock.js";
 
 const sotreTodayMock = async (req, res) => {
     const { questions, subjectResults, selectedAnswers, totalScore, totalQuestions, submittedAt } = req.body;
-  
+    console.log(req.body);
       // Create a new test result document 
       const newTestResult = new TestResult({
         questions,
@@ -17,8 +17,7 @@ const sotreTodayMock = async (req, res) => {
       const savedTestResult = await newTestResult.save();
   
       res.status(201).json({
-        message: 'Test result stored successfully',
-        data: savedTestResult,
+        id: savedTestResult._id,
       });
     };
 
