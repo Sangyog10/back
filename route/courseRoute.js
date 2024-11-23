@@ -10,11 +10,11 @@ import {
   addVideo,
 } from "../controllers/courseController.js";
 
-router.post("/add-course", addCourse);
+router.post("/", addCourse);
 router.post("/add-section/:courseId", addSection);
 router.post("/add-video/:courseId/:sectionId", addVideo);
 router.get("/:id", getCourseDetails);
 router.get("/", getAllCourses);
-router.get("/:courseId/videos/:videoId", getVideoDetails);
+router.get("/:courseId/video/:videoId", getVideoDetails);
 
 export default router;

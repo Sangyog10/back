@@ -1,8 +1,5 @@
 import mongoose from "mongoose";
 
-//price
-//filter on babsi of price and price rnage
-//filter on basis of topic
 const videoSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -58,6 +55,11 @@ const courseSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: [0, "Price must be greater than or equal to 0"],
     },
   },
   { timestamps: true }
