@@ -3,11 +3,11 @@ const mongoose = require("mongoose");
 // Mock Test Schema
 const mockTestSchema = new mongoose.Schema(
   {
-    course: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
-      required: true,
-    },
+    // user: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "User",
+    //   required: true,
+    // },
     questions: [
       {
         question: {
@@ -21,8 +21,11 @@ const mockTestSchema = new mongoose.Schema(
           },
         ],
         correctAnswer: {
-          type: Number, // Index of the correct option in the options array
+          type: String,
           required: true,
+        },
+        category: {
+          enum: ["Physics,chemikdfdskff,/////"],
         },
       },
     ],

@@ -1,20 +1,18 @@
-// const User = require("../models/User");
-import User from "../model/userModel";
-const { StatusCodes } = require("http-status-codes");
-const CustomError = require("../errors");
-const { attachCookiesToResponse, createTokenUser } = require("../utils");
+import User from "../model/userModel.js";
+import { StatusCodes } from "http-status-codes";
+import { BadRequestError, UnauthenticatedError } from "../errors/index.js";
+import { attachCookiesToResponse, createTokenUser } from "../utils/index.js";
 
 const register = async (req, res) => {
   const { email } = req.body;
 
   const emailAlreadyExist = await User.findOne({ email });
   if (emailAlreadyExist) {
-    throw new CustomError.BadRequestError("Email already exist");
+    throw new BadRequestError("Email already exists");
   }
 
   const user = await User.create(req.body);
 
-  // const tokenUser = { name: user.name, userId: user._id, role: user.role };
   const tokenUser = createTokenUser(user);
   attachCookiesToResponse({ res, user: tokenUser });
   res.status(StatusCodes.CREATED).json({ tokenUser });
@@ -23,19 +21,18 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    throw new CustomError.BadRequestError("Enter both email and password");
+    throw new BadRequestError("Enter both email and password");
   }
   const user = await User.findOne({ email });
   if (!user) {
-    throw new CustomError.UnauthenticatedError("Invalid credential");
+    throw new UnauthenticatedError("Invalid credentials");
   }
 
-  const isPassword = await user.comparePassword(password);
-  if (!isPassword) {
-    throw new CustomError.UnauthenticatedError("Invalid password");
+  const isPasswordValid = await user.comparePassword(password);
+  if (!isPasswordValid) {
+    throw new UnauthenticatedError("Invalid password");
   }
-  // console.log(user._id);
-  // const tokenUser = { name: user.name, userId: user._id, role: user.role };
+
   const tokenUser = createTokenUser(user);
   attachCookiesToResponse({ res, user: tokenUser });
   res.status(StatusCodes.CREATED).json({ tokenUser });
@@ -49,4 +46,4 @@ const logout = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "Logged out" });
 };
 
-module.exports = { register, login, logout };
+export { register, login, logout };

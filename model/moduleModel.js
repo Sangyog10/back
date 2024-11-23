@@ -1,23 +1,20 @@
-const mongoose = require("mongoose");
-
 const moduleSchema = new mongoose.Schema(
   {
     title: {
       type: String,
       required: true,
     },
-    lessons: [
+    videos: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Lesson",
+        ref: "Video",
       },
     ],
     duration: {
-      type: Number, // in minutes
-      required: true,
+      type: Number, // Calculate total duration from associated videos
     },
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Module", moduleSchema);
+export default mongoose.model("Module", moduleSchema);
