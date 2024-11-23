@@ -4,13 +4,10 @@ import { isTokenValid } from "../utils/jwt.js";
 const authenticateUser = async (req, res, next) => {
   let token;
 
-  // Check header
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith("Bearer")) {
     token = authHeader.split(" ")[1];
-  }
-  // Check cookies
-  else if (req.cookies.token) {
+  } else if (req.cookies.token) {
     token = req.cookies.token;
   }
 
@@ -21,7 +18,6 @@ const authenticateUser = async (req, res, next) => {
   try {
     const payload = isTokenValid(token);
 
-    // Attach the user and his permissions to the req object
     req.user = {
       userId: payload.user.userId,
     };
@@ -31,7 +27,5 @@ const authenticateUser = async (req, res, next) => {
     throw new UnauthenticatedError("Authentication invalid");
   }
 };
-
-
 
 export { authenticateUser };
