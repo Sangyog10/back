@@ -1,5 +1,35 @@
 import mongoose from "mongoose";
 
+// Define study material schema for each video
+const studyMaterialSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+  },
+  type: {
+    type: String, // e.g., "pdf", "document", "link"
+    required: true,
+  },
+  url: {
+    type: String, // URL of the file or link
+    required: true,
+  },
+  fileName: {
+    type: String, // File name for downloadable materials (optional)
+  },
+  description: {
+    type: String, // Optional description for the study material
+  },
+  size: {
+    type: Number, // Size of the file in bytes (optional)
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// Define video schema including study materials
 const videoSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -17,8 +47,13 @@ const videoSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  studyMaterials: {
+    type: [studyMaterialSchema],
+    required: false, // Study materials are optional for each video
+  },
 });
 
+// Define section schema with videos
 const sectionSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -30,6 +65,7 @@ const sectionSchema = new mongoose.Schema({
   },
 });
 
+// Define course schema
 const courseSchema = new mongoose.Schema(
   {
     title: {

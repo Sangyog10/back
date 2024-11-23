@@ -2,6 +2,7 @@ import courseModel from "../model/courseModel.js";
 import { StatusCodes } from "http-status-codes";
 import { NotFoundError, BadRequestError } from "../errors/index.js";
 
+// Add a new course
 const addCourse = async (req, res) => {
   const {
     title,
@@ -64,6 +65,7 @@ const getAllCourses = async (req, res) => {
   res.status(StatusCodes.OK).json({ courses });
 };
 
+// Get course details by ID
 const getCourseDetails = async (req, res) => {
   const { id } = req.params;
   const course = await courseModel.findById(id);
@@ -123,10 +125,10 @@ const addSection = async (req, res) => {
   });
 };
 
-// Add a new video to a section
+// Add a new video to a section with optional study materials
 const addVideo = async (req, res) => {
   const { courseId, sectionId } = req.params;
-  const { title, duration, videoUrl, partNumber } = req.body;
+  const { title, duration, videoUrl, partNumber, studyMaterials } = req.body;
 
   if (!title || !duration || !videoUrl) {
     throw new BadRequestError("Title, duration, and video URL are required.");
@@ -147,6 +149,7 @@ const addVideo = async (req, res) => {
     duration,
     videoUrl,
     partNumber: partNumber || section.videos.length + 1,
+    studyMaterials: studyMaterials || [],
   };
 
   section.videos.push(newVideo);
@@ -159,6 +162,64 @@ const addVideo = async (req, res) => {
   });
 };
 
+// Update study materials for a specific video
+const updateStudyMaterials = async (req, res) => {
+  const { courseId, sectionId, videoId } = req.params;
+  const { studyMaterials } = req.body;
+
+  if (!studyMaterials || studyMaterials.length === 0) {
+    throw new BadRequestError("At least one study material is required.");
+  }
+
+  const course = await courseModel.findById(courseId);
+  if (!course) {
+    throw new NotFoundError(`No course found with ID: ${courseId}`);
+  }
+
+  const section = course.sections.id(sectionId);
+  if (!section) {
+    throw new NotFoundError(`No section found with ID: ${sectionId}`);
+  }
+
+  const video = section.videos.id(videoId);
+  if (!video) {
+    throw new NotFoundError(`No video found with ID: ${videoId}`);
+  }
+
+  video.studyMaterials = studyMaterials;
+
+  await course.save();
+
+  res.status(StatusCodes.OK).json({
+    msg: "Study materials updated successfully",
+    video,
+  });
+};
+
+// Get study materials for a specific video
+const getStudyMaterials = async (req, res) => {
+  const { courseId, sectionId, videoId } = req.params;
+
+  const course = await courseModel.findById(courseId);
+  if (!course) {
+    throw new NotFoundError(`No course found with ID: ${courseId}`);
+  }
+
+  const section = course.sections.id(sectionId);
+  if (!section) {
+    throw new NotFoundError(`No section found with ID: ${sectionId}`);
+  }
+
+  const video = section.videos.id(videoId);
+  if (!video) {
+    throw new NotFoundError(`No video found with ID: ${videoId}`);
+  }
+
+  res.status(StatusCodes.OK).json({
+    studyMaterials: video.studyMaterials,
+  });
+};
+
 export {
   getAllCourses,
   getCourseDetails,
@@ -166,4 +227,6 @@ export {
   addCourse,
   addSection,
   addVideo,
+  updateStudyMaterials,
+  getStudyMaterials,
 };
