@@ -7,17 +7,15 @@ import {
 } from "../errors/index.js";
 
 const createMockTest = async (req, res) => {
-  const { title, description, subject, questions } = req.body;
+  const { subject, questions } = req.body;
 
-  if (!title || !subject || !questions || questions.length === 0) {
+  if (!subject || !questions || questions.length === 0) {
     throw new BadRequestError(
-      "Title, subject, and at least one question are required."
+      "Subject and at least one question are required."
     );
   }
 
   const mockTest = await MockTest.create({
-    title,
-    description,
     subject,
     questions,
   });
@@ -34,7 +32,7 @@ const getAllMockTests = async (req, res) => {
   }
 
   const mockTests = await MockTest.find(queryObject).select(
-    "title subject description createdAt"
+    "subject createdAt"
   );
 
   res.status(StatusCodes.OK).json({ count: mockTests.length, mockTests });
@@ -64,42 +62,47 @@ const deleteMockTest = async (req, res) => {
 
 const submitMockTest = async (req, res) => {
   const { id: mockTestId } = req.params;
-  const { answers } = req.body; // User's answers
+  const { selectedIndexes } = req.body; // User's selected answer indexes
 
   const mockTest = await MockTest.findById(mockTestId);
   if (!mockTest) {
     throw new NotFoundError(`No Mock Test found with ID: ${mockTestId}`);
   }
 
-  let score = 0;
-  const results = [];
+  let totalScore = 0;
+  const subjectResults = [];
 
-  mockTest.questions.forEach((question, index) => {
-    const userAnswer = answers.find(
-      (answer) => String(answer.questionId) === String(question._id)
-    );
+  // Calculate score and results per subject
+  const results = mockTest.questions.map((question, index) => {
+    const selectedOptionIndex = selectedIndexes[index];
+    const isCorrect =
+      question.options[selectedOptionIndex] === question.correctAnswer;
+    if (isCorrect) totalScore++;
 
-    if (userAnswer) {
-      const isCorrect = userAnswer.selectedOption === question.correctAnswer;
-      if (isCorrect) score++;
-      results.push({
-        questionId: question._id,
-        selectedOption: userAnswer.selectedOption,
-        isCorrect,
-      });
-    } else {
-      results.push({
-        questionId: question._id,
-        selectedOption: null,
-        isCorrect: false,
-      });
-    }
+    return {
+      questionId: question._id,
+      selectedOption: question.options[selectedOptionIndex],
+      isCorrect,
+    };
   });
 
+  // Aggregate subject results
+  const subjectResult = {
+    subject: mockTest.subject,
+    score: totalScore,
+    correctCount: results.filter((result) => result.isCorrect).length,
+    wrongCount: results.filter((result) => !result.isCorrect).length,
+    selectedAnswers: results.map((result) => result.selectedOption),
+  };
+  subjectResults.push(subjectResult);
+
+  // Store submission
   mockTest.submissions.push({
     user: req.user.userId,
-    answers: results,
-    score,
+    subjectResults,
+    selectedIndexes,
+    totalScore,
+    totalQuestions: mockTest.questions.length,
   });
 
   await mockTest.save();
@@ -107,7 +110,7 @@ const submitMockTest = async (req, res) => {
   res.status(StatusCodes.OK).json({
     msg: "Submission successful",
     subject: mockTest.subject,
-    score,
+    score: totalScore,
     totalQuestions: mockTest.questions.length,
     results,
   });
@@ -122,7 +125,7 @@ const getQuestionsBySubject = async (req, res) => {
       .json({ msg: "Subject is required" });
   }
 
-  const mockTests = await MockTest.find({ "questions.subject": subject });
+  const mockTests = await MockTest.find({ subject });
 
   if (!mockTests.length) {
     return res
@@ -130,9 +133,7 @@ const getQuestionsBySubject = async (req, res) => {
       .json({ msg: "No questions found for this subject" });
   }
 
-  const questions = mockTests
-    .map((test) => test.questions.filter((q) => q.subject === subject))
-    .flat();
+  const questions = mockTests.flatMap((test) => test.questions);
 
   res.status(StatusCodes.OK).json({ subject, questions });
 };

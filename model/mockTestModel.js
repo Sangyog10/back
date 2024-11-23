@@ -1,21 +1,14 @@
 import mongoose from "mongoose";
 
+// Schema for individual questions
 const questionSchema = new mongoose.Schema({
-  subject: {
-    type: String,
-    required: true,
-  },
-  questionText: {
+  text: {
     type: String,
     required: true,
   },
   options: {
     type: [String],
     required: true,
-    validate: {
-      validator: (val) => val.length === 4,
-      message: "There must be exactly 4 options.",
-    },
   },
   correctAnswer: {
     type: String,
@@ -23,51 +16,77 @@ const questionSchema = new mongoose.Schema({
   },
 });
 
+// Schema for subject-specific results
+const subjectResultSchema = new mongoose.Schema({
+  subject: {
+    type: String,
+    required: true,
+  },
+  score: {
+    type: Number,
+    required: true,
+  },
+  correctCount: {
+    type: Number,
+    required: true,
+  },
+  wrongCount: {
+    type: Number,
+    required: true,
+  },
+  selectedAnswers: {
+    type: [String],
+    required: true,
+  },
+});
+
+// Schema for individual submissions
+const submissionSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    subjectResults: {
+      type: [subjectResultSchema],
+      required: true,
+    },
+    selectedAnswers: {
+      type: Map,
+      of: Number, // Stores question index and selected option index
+      required: true,
+    },
+    totalScore: {
+      type: Number,
+      required: true,
+    },
+    totalQuestions: {
+      type: Number,
+      required: true,
+    },
+    submittedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { timestamps: true }
+);
+
+// Main schema for the mock test
 const mockTestSchema = new mongoose.Schema(
   {
-    title: {
-      type: String,
-      required: true, // Title of the mock test
-    },
-    description: {
-      type: String, // A brief description of the test
-    },
     subject: {
-      type: String, // The subject of the mock test
+      type: String,
       required: true,
     },
     questions: {
-      type: [questionSchema], // Array of questions
+      type: [questionSchema],
       required: true,
     },
-    submissions: [
-      {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User", // Reference to the user who submitted
-          required: true,
-        },
-        answers: [
-          {
-            questionIndex: {
-              type: Number,
-            },
-            selectedOption: {
-              type: String, // The option selected by the user
-              required: true,
-            },
-          },
-        ],
-        score: {
-          type: Number, // Calculated score for the submission
-          required: true,
-        },
-        submittedAt: {
-          type: Date, // When the submission was made
-          default: Date.now,
-        },
-      },
-    ],
+    submissions: {
+      type: [submissionSchema],
+    },
   },
   { timestamps: true }
 );
