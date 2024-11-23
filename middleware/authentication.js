@@ -2,7 +2,9 @@ import { UnauthenticatedError } from "../errors/index.js";
 import { isTokenValid } from "../utils/index.js";
 
 const authenticateUser = async (req, res, next) => {
-  const token = req.signedCookies.token;
+  const token = req.cookies.token;
+  console.log(token);
+
   if (!token) {
     throw new UnauthenticatedError(
       "You cannot access it, Authentication invalid"
@@ -21,4 +23,4 @@ const authenticateUser = async (req, res, next) => {
   }
 };
 
-export { authenticateUser, authorizePermission };
+export { authenticateUser };

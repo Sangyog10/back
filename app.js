@@ -1,11 +1,14 @@
 import express from "express";
 import "express-async-errors";
-import authRouter from "./route/authRoute.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
+import authRouter from "./route/authRoute.js";
+import courseRouter from "./route/courseRoute.js";
+
 import notFoundMiddleware from "./middleware/not-found.js";
 import errorHandlerMiddleware from "./middleware/error-handler.js";
+import { authenticateUser } from "./middleware/authentication.js";
 
 const app = express();
 
@@ -14,6 +17,12 @@ app.use(express.json());
 app.use(cookieParser(process.env.jwtSecret, {}));
 
 app.use("/api/v1/auth", authRouter);
+app.use("/dashboard", authenticateUser, (req, res) => {
+  console.log("rdfq");
+  console.log(req);
+  res.json({ user });
+});
+app.use("/api/v1/course", courseRouter);
 
 app.get("/test", (req, res) => {
   res.send("testing");

@@ -1,4 +1,15 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
+import { authenticateUser } from "../middleware/authentication.js";
 
-module.exports = router;
+// router.get("/test", authenticateUser, () => {
+//   res.send("passed test");
+// });
+
+router.get("/test", authenticateUser, (req, res) => {
+  const user = req.user;
+
+  res.send(user);
+});
+
+export default router;
