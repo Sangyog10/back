@@ -12,6 +12,11 @@ const addCourse = async (req, res) => {
     category,
     price,
     sections,
+    status,
+    level,
+    assignments,
+    progress,
+    quizzes,
   } = req.body;
 
   if (
@@ -20,7 +25,8 @@ const addCourse = async (req, res) => {
     !thumbnail ||
     !instructor ||
     !category ||
-    !price
+    !price ||
+    !level
   ) {
     throw new BadRequestError("All required fields must be provided.");
   }
@@ -33,6 +39,11 @@ const addCourse = async (req, res) => {
     category,
     price,
     sections: sections || [],
+    status: status || "available",
+    level,
+    assignments: assignments || 0,
+    progress: progress || 0,
+    quizzes: quizzes || Math.floor(Math.random() * 20) + 1,
   });
 
   res.status(StatusCodes.CREATED).json({
@@ -41,14 +52,17 @@ const addCourse = async (req, res) => {
   });
 };
 
-// Get all courses with optional filters for category and price range
 const getAllCourses = async (req, res) => {
-  const { category, minPrice, maxPrice } = req.query;
+  const { category, minPrice, maxPrice, level } = req.query;
 
   const query = {};
 
   if (category) {
     query.category = category;
+  }
+
+  if (level) {
+    query.level = level;
   }
 
   if (minPrice || maxPrice) {
@@ -57,12 +71,33 @@ const getAllCourses = async (req, res) => {
     if (maxPrice) query.price.$lte = Number(maxPrice);
   }
 
-  const courses = await courseModel.find(
-    query,
-    "title thumbnail description category price"
-  );
+  try {
+    const courses = await courseModel.find(
+      query,
+      "title thumbnail description category price level status progress totalDuration sections"
+    );
 
-  res.status(StatusCodes.OK).json({ courses });
+    // Check if courses are found
+    if (!courses || courses.length === 0) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ msg: "No courses found." });
+    }
+
+    // Add totalDuration to each course
+    const coursesWithDetails = courses.map((course) => {
+      // Ensure totalDuration is correctly calculated
+      const totalDuration = course.totalDuration || "00:00:00"; // Default if no totalDuration exists
+      return { ...course.toObject(), totalDuration };
+    });
+
+    res.status(StatusCodes.OK).json({ courses: coursesWithDetails });
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: "An error occurred while fetching courses." });
+  }
 };
 
 // Get course details by ID

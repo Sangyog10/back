@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// Define study material schema for each video
 const studyMaterialSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -36,7 +35,7 @@ const videoSchema = new mongoose.Schema({
     required: true,
   },
   duration: {
-    type: String,
+    type: String, // Format: "HH:mm:ss"
     required: true,
   },
   videoUrl: {
@@ -49,11 +48,10 @@ const videoSchema = new mongoose.Schema({
   },
   studyMaterials: {
     type: [studyMaterialSchema],
-    required: false, // Study materials are optional for each video
+    required: false,
   },
 });
 
-// Define section schema with videos
 const sectionSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -65,7 +63,6 @@ const sectionSchema = new mongoose.Schema({
   },
 });
 
-// Define course schema
 const courseSchema = new mongoose.Schema(
   {
     title: {
@@ -97,8 +94,58 @@ const courseSchema = new mongoose.Schema(
       required: true,
       min: [0, "Price must be greater than or equal to 0"],
     },
+    status: {
+      type: String,
+      enum: ["completed", "ongoing", "available"],
+      default: "available",
+    },
+    level: {
+      type: String,
+      enum: ["beginner", "intermediate", "advanced"],
+      required: true,
+    },
+    assignments: {
+      type: Number,
+      default: 0,
+    },
+    progress: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    quizzes: {
+      type: Number,
+    },
   },
   { timestamps: true }
 );
+
+courseSchema.virtual("totalDuration").get(function () {
+  const parseDuration = (duration) => {
+    const parts = duration.split(":").map(Number);
+    const [hours = 0, minutes = 0, seconds = 0] = parts.reverse();
+    return seconds + minutes * 60 + hours * 3600;
+  };
+
+  const formatDuration = (totalSeconds) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  let totalSeconds = 0;
+
+  this.sections.forEach((section) => {
+    section.videos.forEach((video) => {
+      totalSeconds += parseDuration(video.duration);
+    });
+  });
+
+  return formatDuration(totalSeconds);
+});
 
 export default mongoose.model("Course", courseSchema);
