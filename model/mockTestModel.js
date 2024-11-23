@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const questionSchema = new mongoose.Schema({
+  subject: {
+    type: String, // The subject of the question (e.g., Math, Science)
+    required: true,
+  },
   questionText: {
     type: String,
     required: true, // The question text
@@ -27,6 +31,10 @@ const mockTestSchema = new mongoose.Schema(
     },
     description: {
       type: String, // A brief description of the test
+    },
+    subject: {
+      type: String, // The subject of the mock test
+      required: true,
     },
     questions: {
       type: [questionSchema], // Array of questions
