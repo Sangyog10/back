@@ -56,6 +56,11 @@ const courseSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    price: {
+      type: Number,
+      required: true,
+      min: [0, "Price must be greater than or equal to 0"],
+    },
   },
   { timestamps: true }
 );

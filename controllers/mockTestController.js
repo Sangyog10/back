@@ -6,18 +6,17 @@ import {
   UnauthorizedError,
 } from "../errors/index.js";
 
+// Create a new mock test
 const createMockTest = async (req, res) => {
-  const { title, description, subject, questions } = req.body;
+  const { subject, questions } = req.body;
 
-  if (!title || !subject || !questions || questions.length === 0) {
+  if (!subject || !questions || questions.length === 0) {
     throw new BadRequestError(
-      "Title, subject, and at least one question are required."
+      "Subject and at least one question are required."
     );
   }
 
   const mockTest = await MockTest.create({
-    title,
-    description,
     subject,
     questions,
   });
@@ -25,6 +24,7 @@ const createMockTest = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ mockTest });
 };
 
+// Get all mock tests, optionally filtered by subject
 const getAllMockTests = async (req, res) => {
   const { subject } = req.query; // Filter by subject
   const queryObject = {};
@@ -34,12 +34,13 @@ const getAllMockTests = async (req, res) => {
   }
 
   const mockTests = await MockTest.find(queryObject).select(
-    "title subject description createdAt"
+    "subject createdAt"
   );
 
   res.status(StatusCodes.OK).json({ count: mockTests.length, mockTests });
 };
 
+// Get a single mock test by ID
 const getSingleMockTest = async (req, res) => {
   const { id: mockTestId } = req.params;
 
@@ -51,6 +52,7 @@ const getSingleMockTest = async (req, res) => {
   res.status(StatusCodes.OK).json({ mockTest });
 };
 
+// Delete a mock test by ID
 const deleteMockTest = async (req, res) => {
   const { id: mockTestId } = req.params;
 
@@ -62,44 +64,48 @@ const deleteMockTest = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "Mock Test deleted successfully" });
 };
 
+// Submit a mock test
 const submitMockTest = async (req, res) => {
   const { id: mockTestId } = req.params;
-  const { answers } = req.body; // User's answers
+  const { selectedIndexes } = req.body;
 
   const mockTest = await MockTest.findById(mockTestId);
   if (!mockTest) {
     throw new NotFoundError(`No Mock Test found with ID: ${mockTestId}`);
   }
 
-  let score = 0;
-  const results = [];
+  let totalScore = 0;
+  const subjectResults = {};
 
-  mockTest.questions.forEach((question, index) => {
-    const userAnswer = answers.find(
-      (answer) => String(answer.questionId) === String(question._id)
-    );
+  const results = mockTest.questions.map((question, index) => {
+    const selectedOptionIndex = selectedIndexes[index];
+    const isCorrect =
+      question.options[selectedOptionIndex] === question.correctAnswer;
 
-    if (userAnswer) {
-      const isCorrect = userAnswer.selectedOption === question.correctAnswer;
-      if (isCorrect) score++;
-      results.push({
-        questionId: question._id,
-        selectedOption: userAnswer.selectedOption,
-        isCorrect,
-      });
-    } else {
-      results.push({
-        questionId: question._id,
-        selectedOption: null,
-        isCorrect: false,
-      });
+    if (!subjectResults[question.subject]) {
+      subjectResults[question.subject] = { correct: 0, wrong: 0 };
     }
+
+    if (isCorrect) {
+      totalScore++;
+      subjectResults[question.subject].correct++;
+    } else {
+      subjectResults[question.subject].wrong++;
+    }
+
+    return {
+      questionId: question._id,
+      selectedOption: question.options[selectedOptionIndex],
+      isCorrect,
+    };
   });
 
   mockTest.submissions.push({
     user: req.user.userId,
-    answers: results,
-    score,
+    subjectResults,
+    selectedIndexes,
+    totalScore,
+    totalQuestions: mockTest.questions.length,
   });
 
   await mockTest.save();
@@ -107,9 +113,57 @@ const submitMockTest = async (req, res) => {
   res.status(StatusCodes.OK).json({
     msg: "Submission successful",
     subject: mockTest.subject,
-    score,
+    score: totalScore,
     totalQuestions: mockTest.questions.length,
     results,
+    subjectResults,
+  });
+};
+
+const getRandomQuestions = async (req, res) => {
+  const { count = 10 } = req.query;
+
+  const mockTests = await MockTest.find();
+
+  if (!mockTests.length) {
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ msg: "No mock tests found!" });
+  }
+
+  const allQuestions = mockTests.reduce((questions, mockTest) => {
+    return questions.concat(
+      mockTest.questions.map((q) => ({
+        ...q,
+        subject: mockTest.subject,
+      }))
+    );
+  }, []);
+
+  if (!allQuestions.length) {
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ msg: "No questions available in the database." });
+  }
+
+  const shuffledQuestions = allQuestions.sort(() => Math.random() - 0.5);
+
+  const selectedQuestions = shuffledQuestions.slice(
+    0,
+    Math.min(count, allQuestions.length)
+  );
+
+  const subjectTracking = {};
+
+  selectedQuestions.forEach((question) => {
+    if (!subjectTracking[question.subject]) {
+      subjectTracking[question.subject] = { correct: 0, wrong: 0 };
+    }
+  });
+  res.status(StatusCodes.OK).json({
+    count: selectedQuestions.length,
+    questions: selectedQuestions,
+    subjectTracking,
   });
 };
 
@@ -122,7 +176,7 @@ const getQuestionsBySubject = async (req, res) => {
       .json({ msg: "Subject is required" });
   }
 
-  const mockTests = await MockTest.find({ "questions.subject": subject });
+  const mockTests = await MockTest.find({ subject });
 
   if (!mockTests.length) {
     return res
@@ -130,44 +184,9 @@ const getQuestionsBySubject = async (req, res) => {
       .json({ msg: "No questions found for this subject" });
   }
 
-  const questions = mockTests
-    .map((test) => test.questions.filter((q) => q.subject === subject))
-    .flat();
+  const questions = mockTests.flatMap((test) => test.questions);
 
   res.status(StatusCodes.OK).json({ subject, questions });
-};
-
-const getRandomQuestions = async (req, res) => {
-  const { count = 10 } = req.query; // Number of random questions (default to 10)
-
-  const mockTests = await MockTest.find();
-
-  if (!mockTests.length) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ msg: "No mock tests found!" });
-  }
-
-  const allQuestions = mockTests.reduce((questions, mockTest) => {
-    return questions.concat(mockTest.questions);
-  }, []);
-
-  if (!allQuestions.length) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ msg: "No questions available in the database." });
-  }
-
-  const shuffledQuestions = allQuestions.sort(() => Math.random() - 0.5);
-  const selectedQuestions = shuffledQuestions.slice(
-    0,
-    Math.min(count, allQuestions.length)
-  );
-
-  res.status(StatusCodes.OK).json({
-    count: selectedQuestions.length,
-    questions: selectedQuestions,
-  });
 };
 
 export {

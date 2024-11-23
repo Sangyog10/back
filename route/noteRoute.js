@@ -1,10 +1,17 @@
 import express from "express";
 const router = express.Router();
+import { authenticateUser } from "../middleware/authentication.js";
 
-import { register, login, logout } from "../controllers/authController.js";
+import {
+  createNote,
+  updateNote,
+  deleteNote,
+  getNotes,
+} from "../controllers/noteController.js";
 
-router.post("/register", register);
-router.post("/login", login);
-router.get("/logout", logout);
+router.get("/", authenticateUser, getNotes);
+router.post("/", authenticateUser, createNote);
+router.delete("/", authenticateUser, deleteNote);
+router.patch("/", authenticateUser, updateNote);
 
 export default router;

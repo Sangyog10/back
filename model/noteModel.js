@@ -1,23 +1,30 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const noteSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    videoId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Lesson",
+    title: {
+      type: String,
       required: true,
     },
     content: {
       type: String,
       required: true,
     },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true }
 );
-
-module.exports = mongoose.model("Note", noteSchema);
+export default mongoose.model("Note", noteSchema);
