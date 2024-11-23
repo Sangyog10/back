@@ -7,6 +7,7 @@ import authRouter from "./route/authRoute.js";
 import mockTestRouter from "./route/mockTestRoute.js";
 import courseRouter from "./route/courseRoute.js";
 import noteRouter from "./route/noteRoute.js";
+import todayMock from "./route/todayMockRoute.js";
 
 import notFoundMiddleware from "./middleware/not-found.js";
 import errorHandlerMiddleware from "./middleware/error-handler.js";
@@ -22,6 +23,7 @@ app.use("/api/v1/course", courseRouter);
 app.use("/api/v1/mocktest", mockTestRouter);
 app.use("/api/v1/course", courseRouter);
 app.use("/api/v1/note", noteRouter);
+app.use("/api/v1/", todayMock);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
