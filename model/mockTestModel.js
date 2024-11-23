@@ -49,9 +49,8 @@ const mockTestSchema = new mongoose.Schema(
         },
         answers: [
           {
-            questionId: {
-              type: mongoose.Schema.Types.ObjectId, // Reference to a question in the mock test
-              required: true,
+            questionIndex: {
+              type: Number,
             },
             selectedOption: {
               type: String, // The option selected by the user

@@ -119,6 +119,7 @@ const submitMockTest = async (req, res) => {
     results,
   });
 };
+
 const getQuestionsBySubject = async (req, res) => {
   const { subject } = req.query;
 
