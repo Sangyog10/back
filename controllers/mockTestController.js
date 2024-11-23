@@ -6,6 +6,7 @@ import {
   UnauthorizedError,
 } from "../errors/index.js";
 
+// Create a new mock test
 const createMockTest = async (req, res) => {
   const { subject, questions } = req.body;
 
@@ -23,6 +24,7 @@ const createMockTest = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ mockTest });
 };
 
+// Get all mock tests, optionally filtered by subject
 const getAllMockTests = async (req, res) => {
   const { subject } = req.query; // Filter by subject
   const queryObject = {};
@@ -38,6 +40,7 @@ const getAllMockTests = async (req, res) => {
   res.status(StatusCodes.OK).json({ count: mockTests.length, mockTests });
 };
 
+// Get a single mock test by ID
 const getSingleMockTest = async (req, res) => {
   const { id: mockTestId } = req.params;
 
@@ -49,6 +52,7 @@ const getSingleMockTest = async (req, res) => {
   res.status(StatusCodes.OK).json({ mockTest });
 };
 
+// Delete a mock test by ID
 const deleteMockTest = async (req, res) => {
   const { id: mockTestId } = req.params;
 
@@ -60,9 +64,10 @@ const deleteMockTest = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "Mock Test deleted successfully" });
 };
 
+// Submit a mock test
 const submitMockTest = async (req, res) => {
   const { id: mockTestId } = req.params;
-  const { selectedIndexes } = req.body; // User's selected answer indexes
+  const { selectedIndexes } = req.body;
 
   const mockTest = await MockTest.findById(mockTestId);
   if (!mockTest) {
@@ -70,14 +75,23 @@ const submitMockTest = async (req, res) => {
   }
 
   let totalScore = 0;
-  const subjectResults = [];
+  const subjectResults = {};
 
-  // Calculate score and results per subject
   const results = mockTest.questions.map((question, index) => {
     const selectedOptionIndex = selectedIndexes[index];
     const isCorrect =
       question.options[selectedOptionIndex] === question.correctAnswer;
-    if (isCorrect) totalScore++;
+
+    if (!subjectResults[question.subject]) {
+      subjectResults[question.subject] = { correct: 0, wrong: 0 };
+    }
+
+    if (isCorrect) {
+      totalScore++;
+      subjectResults[question.subject].correct++;
+    } else {
+      subjectResults[question.subject].wrong++;
+    }
 
     return {
       questionId: question._id,
@@ -86,17 +100,6 @@ const submitMockTest = async (req, res) => {
     };
   });
 
-  // Aggregate subject results
-  const subjectResult = {
-    subject: mockTest.subject,
-    score: totalScore,
-    correctCount: results.filter((result) => result.isCorrect).length,
-    wrongCount: results.filter((result) => !result.isCorrect).length,
-    selectedAnswers: results.map((result) => result.selectedOption),
-  };
-  subjectResults.push(subjectResult);
-
-  // Store submission
   mockTest.submissions.push({
     user: req.user.userId,
     subjectResults,
@@ -113,6 +116,54 @@ const submitMockTest = async (req, res) => {
     score: totalScore,
     totalQuestions: mockTest.questions.length,
     results,
+    subjectResults,
+  });
+};
+
+const getRandomQuestions = async (req, res) => {
+  const { count = 10 } = req.query;
+
+  const mockTests = await MockTest.find();
+
+  if (!mockTests.length) {
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ msg: "No mock tests found!" });
+  }
+
+  const allQuestions = mockTests.reduce((questions, mockTest) => {
+    return questions.concat(
+      mockTest.questions.map((q) => ({
+        ...q,
+        subject: mockTest.subject,
+      }))
+    );
+  }, []);
+
+  if (!allQuestions.length) {
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ msg: "No questions available in the database." });
+  }
+
+  const shuffledQuestions = allQuestions.sort(() => Math.random() - 0.5);
+
+  const selectedQuestions = shuffledQuestions.slice(
+    0,
+    Math.min(count, allQuestions.length)
+  );
+
+  const subjectTracking = {};
+
+  selectedQuestions.forEach((question) => {
+    if (!subjectTracking[question.subject]) {
+      subjectTracking[question.subject] = { correct: 0, wrong: 0 };
+    }
+  });
+  res.status(StatusCodes.OK).json({
+    count: selectedQuestions.length,
+    questions: selectedQuestions,
+    subjectTracking,
   });
 };
 
@@ -136,39 +187,6 @@ const getQuestionsBySubject = async (req, res) => {
   const questions = mockTests.flatMap((test) => test.questions);
 
   res.status(StatusCodes.OK).json({ subject, questions });
-};
-
-const getRandomQuestions = async (req, res) => {
-  const { count = 10 } = req.query; // Number of random questions (default to 10)
-
-  const mockTests = await MockTest.find();
-
-  if (!mockTests.length) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ msg: "No mock tests found!" });
-  }
-
-  const allQuestions = mockTests.reduce((questions, mockTest) => {
-    return questions.concat(mockTest.questions);
-  }, []);
-
-  if (!allQuestions.length) {
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ msg: "No questions available in the database." });
-  }
-
-  const shuffledQuestions = allQuestions.sort(() => Math.random() - 0.5);
-  const selectedQuestions = shuffledQuestions.slice(
-    0,
-    Math.min(count, allQuestions.length)
-  );
-
-  res.status(StatusCodes.OK).json({
-    count: selectedQuestions.length,
-    questions: selectedQuestions,
-  });
 };
 
 export {
