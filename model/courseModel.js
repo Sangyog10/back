@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 
+//price
+//filter on babsi of price and price rnage
+//filter on basis of topic
 const videoSchema = new mongoose.Schema({
   title: {
     type: String,

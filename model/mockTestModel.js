@@ -2,23 +2,23 @@ import mongoose from "mongoose";
 
 const questionSchema = new mongoose.Schema({
   subject: {
-    type: String, // The subject of the question (e.g., Math, Science)
+    type: String,
     required: true,
   },
   questionText: {
     type: String,
-    required: true, // The question text
+    required: true,
   },
   options: {
-    type: [String], // Array of options for the question
+    type: [String],
     required: true,
     validate: {
-      validator: (val) => val.length === 4, // Ensure exactly 4 options
+      validator: (val) => val.length === 4,
       message: "There must be exactly 4 options.",
     },
   },
   correctAnswer: {
-    type: String, // The correct answer for the question (must match one of the options)
+    type: String,
     required: true,
   },
 });
