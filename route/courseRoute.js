@@ -2,10 +2,6 @@ import express from "express";
 const router = express.Router();
 import { authenticateUser } from "../middleware/authentication.js";
 
-// router.get("/test", authenticateUser, () => {
-//   res.send("passed test");
-// });
-
 router.get("/test", authenticateUser, (req, res) => {
   const user = req.user;
 

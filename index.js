@@ -14,8 +14,8 @@ const start = async () => {
     console.error(err);
   }
 
-  app.listen(3000, () => {
-    console.log("Port running at 3000");
+  app.listen(3000, "0.0.0.0", () => {
+    console.log("Server is running on http://0.0.0.0:5000");
   });
 };
 

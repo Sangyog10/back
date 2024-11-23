@@ -17,11 +17,7 @@ app.use(express.json());
 app.use(cookieParser(process.env.jwtSecret, {}));
 
 app.use("/api/v1/auth", authRouter);
-app.use("/dashboard", authenticateUser, (req, res) => {
-  console.log("rdfq");
-  console.log(req);
-  res.json({ user });
-});
+
 app.use("/api/v1/course", courseRouter);
 
 app.get("/test", (req, res) => {
