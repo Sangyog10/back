@@ -15,7 +15,6 @@ const questionSchema = new mongoose.Schema(
     askedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     answers: [
       {
@@ -33,7 +32,7 @@ const questionSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["General", "Tech", "Science", "Entertainment", "Other"], // Categories for questions
+      enum: ["General", "Tech", "Science", "Entertainment", "Other"],
       default: "General",
     },
   },

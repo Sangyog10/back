@@ -34,6 +34,10 @@ const videoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  description: {
+    type: String,
+    required: true,
+  },
   duration: {
     type: String, // Format: "HH:mm:ss"
     required: true,

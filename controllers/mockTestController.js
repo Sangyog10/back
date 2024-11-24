@@ -6,7 +6,6 @@ import {
   UnauthorizedError,
 } from "../errors/index.js";
 
-// Create a new mock test
 const createMockTest = async (req, res) => {
   const { subject, questions } = req.body;
 
@@ -24,9 +23,8 @@ const createMockTest = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ mockTest });
 };
 
-// Get all mock tests, optionally filtered by subject
 const getAllMockTests = async (req, res) => {
-  const { subject } = req.query; // Filter by subject
+  const { subject } = req.query;
   const queryObject = {};
 
   if (subject) {
@@ -40,7 +38,6 @@ const getAllMockTests = async (req, res) => {
   res.status(StatusCodes.OK).json({ count: mockTests.length, mockTests });
 };
 
-// Get a single mock test by ID
 const getSingleMockTest = async (req, res) => {
   const { id: mockTestId } = req.params;
 
@@ -52,7 +49,6 @@ const getSingleMockTest = async (req, res) => {
   res.status(StatusCodes.OK).json({ mockTest });
 };
 
-// Delete a mock test by ID
 const deleteMockTest = async (req, res) => {
   const { id: mockTestId } = req.params;
 
@@ -64,7 +60,6 @@ const deleteMockTest = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "Mock Test deleted successfully" });
 };
 
-// Submit a mock test
 const submitMockTest = async (req, res) => {
   const { id: mockTestId } = req.params;
   const { selectedIndexes } = req.body;

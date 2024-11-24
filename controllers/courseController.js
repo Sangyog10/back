@@ -3,7 +3,6 @@ import { StatusCodes } from "http-status-codes";
 import { NotFoundError, BadRequestError } from "../errors/index.js";
 import userModel from "../model/userModel.js";
 
-// Add a new course
 const addCourse = async (req, res) => {
   const {
     title,
@@ -85,10 +84,8 @@ const getAllCourses = async (req, res) => {
         .json({ msg: "No courses found." });
     }
 
-    // Add totalDuration to each course
     const coursesWithDetails = courses.map((course) => {
-      // Ensure totalDuration is correctly calculated
-      const totalDuration = course.totalDuration || "00:00:00"; // Default if no totalDuration exists
+      const totalDuration = course.totalDuration || "00:00:00";
       return { ...course.toObject(), totalDuration };
     });
 
@@ -101,7 +98,6 @@ const getAllCourses = async (req, res) => {
   }
 };
 
-// Get course details by ID
 const getCourseDetails = async (req, res) => {
   const { id } = req.params;
   const course = await courseModel.findById(id);
@@ -112,7 +108,6 @@ const getCourseDetails = async (req, res) => {
   res.status(StatusCodes.OK).json({ course });
 };
 
-// Get video details by course and video ID
 const getVideoDetails = async (req, res) => {
   const { courseId, videoId } = req.params;
 
@@ -132,7 +127,6 @@ const getVideoDetails = async (req, res) => {
   res.status(StatusCodes.OK).json({ video });
 };
 
-// Add a new section to a course
 const addSection = async (req, res) => {
   const { courseId } = req.params;
   const { title, videos } = req.body;
@@ -161,7 +155,6 @@ const addSection = async (req, res) => {
   });
 };
 
-// Add a new video to a section with optional study materials
 const addVideo = async (req, res) => {
   const { courseId, sectionId } = req.params;
   const { title, duration, videoUrl, partNumber, studyMaterials } = req.body;
@@ -198,7 +191,6 @@ const addVideo = async (req, res) => {
   });
 };
 
-// Update study materials for a specific video
 const updateStudyMaterials = async (req, res) => {
   const { courseId, sectionId, videoId } = req.params;
   const { studyMaterials } = req.body;
@@ -232,7 +224,6 @@ const updateStudyMaterials = async (req, res) => {
   });
 };
 
-// Get study materials for a specific video
 const getStudyMaterials = async (req, res) => {
   const { courseId, sectionId, videoId } = req.params;
 
@@ -256,7 +247,7 @@ const getStudyMaterials = async (req, res) => {
   });
 };
 const purchaseCourse = async (req, res) => {
-  const { userId, courseId } = req.params; 
+  const { userId, courseId } = req.params;
   const user = await userModel.findById(userId);
   if (!user) {
     throw new NotFoundError(`No user found with ID: ${userId}`);
@@ -290,5 +281,5 @@ export {
   addVideo,
   updateStudyMaterials,
   getStudyMaterials,
-  purchaseCourse
+  purchaseCourse,
 };

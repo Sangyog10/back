@@ -16,6 +16,6 @@ router.post("/", authenticateUser, createQuestion);
 
 router.get("/:id", getQuestionDetails);
 
-router.post("/:id/answers", authenticateUser, createAnswer);
+router.post("/:id/answer", authenticateUser, createAnswer);
 
 export default router;

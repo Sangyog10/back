@@ -32,12 +32,14 @@ const getAllQuestions = async (req, res) => {
   if (category) filter.category = category;
   if (tags) filter.tags = { $in: tags.split(",") };
 
-  const questions = await Question.find(filter).populate(
-    "askedBy",
-    "name email"
-  );
+  const questions = await Question.find(filter)
+    .populate("askedBy", "name email")
+    .populate({
+      path: "answers",
+      populate: { path: "answeredBy", select: "name email" },
+    });
 
-  if (!questions) {
+  if (!questions || questions.length === 0) {
     throw new NotFoundError("No questions found.");
   }
 
@@ -89,36 +91,4 @@ const createAnswer = async (req, res) => {
   });
 };
 
-const markAsAccepted = async (req, res) => {
-  const { questionId, answerId } = req.params;
-
-  const question = await Question.findById(questionId);
-  if (!question) {
-    throw new NotFoundError(`No question found with ID: ${questionId}`);
-  }
-
-  const answer = await Answer.findById(answerId);
-  if (!answer) {
-    throw new NotFoundError(`No answer found with ID: ${answerId}`);
-  }
-
-  if (question.askedBy.toString() !== req.user.id.toString()) {
-    throw new BadRequestError("Only the question asker can accept an answer.");
-  }
-
-  answer.isAccepted = true;
-  await answer.save();
-
-  res.status(StatusCodes.OK).json({
-    msg: "Answer marked as accepted.",
-    answer,
-  });
-};
-
-export {
-  createQuestion,
-  getAllQuestions,
-  getQuestionDetails,
-  createAnswer,
-  markAsAccepted,
-};
+export { createQuestion, getAllQuestions, getQuestionDetails, createAnswer };

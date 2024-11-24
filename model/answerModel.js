@@ -10,21 +10,11 @@ const answerSchema = new mongoose.Schema(
     answeredBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     question: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Question",
       required: true,
-    },
-    upvotes: {
-      type: Number,
-      default: 0,
-    },
-
-    isAccepted: {
-      type: Boolean,
-      default: false,
     },
     createdAt: {
       type: Date,
