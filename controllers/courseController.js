@@ -1,6 +1,7 @@
 import courseModel from "../model/courseModel.js";
 import { StatusCodes } from "http-status-codes";
 import { NotFoundError, BadRequestError } from "../errors/index.js";
+import userModel from "../model/userModel.js";
 
 // Add a new course
 const addCourse = async (req, res) => {
@@ -254,6 +255,31 @@ const getStudyMaterials = async (req, res) => {
     studyMaterials: video.studyMaterials,
   });
 };
+const purchaseCourse = async (req, res) => {
+  const { userId, courseId } = req.params; 
+  const user = await userModel.findById(userId);
+  if (!user) {
+    throw new NotFoundError(`No user found with ID: ${userId}`);
+  }
+
+  const course = await courseModel.findById(courseId);
+  if (!course) {
+    throw new NotFoundError(`No course found with ID: ${courseId}`);
+  }
+
+  if (user.courses.includes(courseId)) {
+    throw new BadRequestError("You have already purchased this course.");
+  }
+
+  user.courses.push(courseId);
+
+  await user.save();
+
+  res.status(StatusCodes.OK).json({
+    msg: "Course purchased successfully",
+    courses: user.courses,
+  });
+};
 
 export {
   getAllCourses,
@@ -264,4 +290,5 @@ export {
   addVideo,
   updateStudyMaterials,
   getStudyMaterials,
+  purchaseCourse
 };
