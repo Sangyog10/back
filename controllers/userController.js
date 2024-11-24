@@ -35,4 +35,26 @@ const getUserNotes = async (req, res) => {
   }
 };
 
-export { getUserCourses, getUserNotes };
+const getUserDetails = async (req, res) => {
+  const { userId } = req.user; // Assume `req.user` contains authenticated user info
+
+  try {
+    const user = await userModel.findById(userId).select("-password"); // Exclude sensitive fields like password
+
+    if (!user) {
+      throw new NotFoundError(`No user found with ID: ${userId}`);
+    }
+
+    res.status(StatusCodes.OK).json({
+      msg: "User details fetched successfully",
+      user,
+    });
+  } catch (err) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "Error fetching user details",
+      error: err.message,
+    });
+  }
+};
+
+export { getUserCourses, getUserNotes, getUserDetails };

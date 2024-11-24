@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/", getAllQuestions);
 
-router.post("/", authenticateUser, createQuestion);
+router.post("/", createQuestion);
 
 router.get("/:id", getQuestionDetails);
 

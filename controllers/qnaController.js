@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { NotFoundError, BadRequestError } from "../errors/index.js";
 
 const createQuestion = async (req, res) => {
-  const { title, description, category, tags } = req.body;
+  const { title, description } = req.body;
 
   if (!title || !description) {
     throw new BadRequestError("Title and Description are required.");
@@ -14,9 +14,6 @@ const createQuestion = async (req, res) => {
   const question = await Question.create({
     title,
     description,
-    askedBy: req.user.id,
-    category,
-    tags,
   });
 
   res.status(StatusCodes.CREATED).json({
@@ -32,14 +29,12 @@ const getAllQuestions = async (req, res) => {
   if (category) filter.category = category;
   if (tags) filter.tags = { $in: tags.split(",") };
 
-  const questions = await Question.find(filter)
-    .populate("askedBy", "name email")
-    .populate({
-      path: "answers",
-      populate: { path: "answeredBy", select: "name email" },
-    });
+  const questions = await Question.find(filter).populate(
+    "askedBy",
+    "name email"
+  );
 
-  if (!questions || questions.length === 0) {
+  if (!questions) {
     throw new NotFoundError("No questions found.");
   }
 

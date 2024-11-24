@@ -32,7 +32,7 @@ const questionSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["General", "Tech", "Science", "Entertainment", "Other"],
+      enum: ["General", "Tech", "Science", "Entertainment", "Other"], // Categories for questions
       default: "General",
     },
   },
