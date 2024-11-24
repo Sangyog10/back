@@ -14,8 +14,13 @@ const start = async () => {
     console.error(err);
   }
 
+
   app.listen(PORT,() => {
     console.log(`Server is running on port ${PORT}`);
+
+  app.listen(4000, "0.0.0.0", () => {
+    console.log("Server running on http://localhost:4000");
+
   });
 };
 
