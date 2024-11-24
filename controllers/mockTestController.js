@@ -123,7 +123,7 @@ const submitMockTest = async (req, res) => {
 const getRandomQuestions = async (req, res) => {
   const { count = 10 } = req.query;
 
-  const mockTests = await MockTest.find();
+  const mockTests = await MockTest.find().lean();
 
   if (!mockTests.length) {
     return res
